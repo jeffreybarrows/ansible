@@ -1,6 +1,6 @@
 ---
 - name: Update Packages
-  hosts: Rmax1 Lab Inventory  # Replace with your target hosts or inventory group
+  hosts: 192.168.1.110  # Replace with your target hosts or inventory group
   become: yes
   become_user: root
   become_method: sudo
