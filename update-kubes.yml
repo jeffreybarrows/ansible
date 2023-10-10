@@ -1,0 +1,10 @@
+---
+- name: Update Packages
+  hosts: k8nodes  # Replace with your target hosts or inventory group
+  become: yes
+  become_user: root
+  become_method: sudo
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes

@@ -1,0 +1,16 @@
+---
+- name: Prune Docker images on remote hosts
+  hosts: dockerhosts
+  remote_user: jeff
+  gather_facts: no
+  tasks:
+    - name: Run Docker image prune command
+      expect:
+        command: docker image prune -f
+        responses:
+          'Are you sure you want to continue? [y/N]': 'y\n'
+      register: docker_prune_output
+
+    - name: Display Docker prune command output
+      debug:
+        var: docker_prune_output.stdout_lines
