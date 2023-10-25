@@ -1,6 +1,6 @@
 ---
 - name: Update Packages
-  hosts: proxmoxnodes  # Replace with your target hosts or inventory group
+  hosts: all  # Replace with your target hosts or inventory group
   become: yes
   become_user: root
   become_method: sudo
