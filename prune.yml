@@ -1,6 +1,6 @@
 ---
 - name: Prune Docker images on remote hosts
-  hosts: dockerhosts
+  hosts: all
   remote_user: jeff
   gather_facts: no
   tasks:
