@@ -1,7 +1,7 @@
 ---
 - name: Prune Docker images on remote hosts
   hosts: all
-  remote_user: jeff
+  become: yes
   gather_facts: no
   tasks:
     - name: Run Docker image prune command
