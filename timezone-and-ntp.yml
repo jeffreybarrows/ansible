@@ -1,0 +1,25 @@
+---
+- name: Configure timezone and enable NTP sync
+  hosts: all
+  become: yes
+  tasks:
+    - name: Set the local timezone to America/Boise
+      ansible.builtin.command:
+        cmd: timedatectl set-timezone America/Boise
+      changed_when: false
+
+    - name: Set the RTC to local timezone
+      ansible.builtin.command:
+        cmd: timedatectl set-local-rtc 1 --adjust-system-clock
+      changed_when: false
+
+    - name: Enable NTP synchronization
+      ansible.builtin.command:
+        cmd: timedatectl set-ntp true
+      changed_when: false
+
+    - name: Ensure that systemd-timesyncd service is enabled and running
+      ansible.builtin.systemd:
+        name: systemd-timesyncd
+        enabled: yes
+        state: started
