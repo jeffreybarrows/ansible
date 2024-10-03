@@ -8,9 +8,9 @@
         cmd: timedatectl set-timezone America/Boise
       changed_when: false
 
-    - name: Set the RTC to local timezone
+    - name: Set the RTC to UTC
       ansible.builtin.command:
-        cmd: timedatectl set-local-rtc 1 --adjust-system-clock
+        cmd: timedatectl set-local-rtc 0 --adjust-system-clock
       changed_when: false
 
     - name: Enable NTP synchronization
