@@ -11,8 +11,8 @@
       ansible.builtin.debug:
         var: mirror_sync_output.stdout
 
-    - name: Clean up old files and directories in the local mirror
-      ansible.builtin.command: apt-mirror clean
+    - name: Clean up old files in the local mirror
+      ansible.builtin.command: /var/spool/apt-mirror/var/clean.sh
       register: cleanup_output
 
     - name: Display cleanup output
