@@ -1,0 +1,20 @@
+---
+- name: Sync and Maintain Local APT Mirror
+  hosts: all
+  become: yes  # Use sudo to execute commands
+  tasks:
+    - name: Run apt-mirror to sync the local APT mirror
+      ansible.builtin.command: apt-mirror
+      register: mirror_sync_output
+
+    - name: Display apt-mirror sync output
+      ansible.builtin.debug:
+        var: mirror_sync_output.stdout
+
+    - name: Clean up old files and directories in the local mirror
+      ansible.builtin.command: apt-mirror clean
+      register: cleanup_output
+
+    - name: Display cleanup output
+      ansible.builtin.debug:
+        var: cleanup_output.stdout
