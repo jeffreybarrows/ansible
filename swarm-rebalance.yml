@@ -4,29 +4,25 @@
   become: yes
   tasks:
     - name: Get the list of Docker Swarm nodes and their roles
-      ansible.builtin.shell: docker node ls --format '{{"{{.ID}} {{.Hostname}} {{.Role}}"}}'
+      ansible.builtin.shell: docker node ls --format '{{json .}}'
       register: docker_nodes
       changed_when: false
 
-    - name: Debug node information (optional)
-      debug:
-        var: docker_nodes.stdout_lines
-
-    - name: Drain all worker nodes
-      ansible.builtin.shell: docker node update --availability drain {{ item.split()[0] }}
-      loop: "{{ docker_nodes.stdout_lines }}"
-      when: "'worker' in item"
+    - name: Parse node details and drain worker nodes
+      ansible.builtin.shell: docker node update --availability drain {{ item.ID }}
+      loop: "{{ docker_nodes.stdout_lines | map('from_json') | list }}"
+      when: item.Role == 'worker'
 
     - name: Set manager node to drain (to avoid scheduling tasks on it)
-      ansible.builtin.shell: docker node update --availability drain {{ item.split()[0] }}
-      loop: "{{ docker_nodes.stdout_lines }}"
-      when: "'manager' in item"
+      ansible.builtin.shell: docker node update --availability drain {{ item.ID }}
+      loop: "{{ docker_nodes.stdout_lines | map('from_json') | list }}"
+      when: item.Role == 'manager'
 
     - name: Sleep for a few seconds to allow tasks to migrate
       ansible.builtin.pause:
         seconds: 10
 
     - name: Bring all worker nodes back online
-      ansible.builtin.shell: docker node update --availability active {{ item.split()[0] }}
-      loop: "{{ docker_nodes.stdout_lines }}"
-      when: "'worker' in item"
+      ansible.builtin.shell: docker node update --availability active {{ item.ID }}
+      loop: "{{ docker_nodes.stdout_lines | map('from_json') | list }}"
+      when: item.Role == 'worker'
