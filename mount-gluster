@@ -1,0 +1,13 @@
+---
+- name: Mount all filesystems
+  hosts: all
+  become: yes  # Ensure the playbook is executed with sudo privileges
+  tasks:
+    - name: Execute mount -a command
+      ansible.builtin.command:
+        cmd: mount -a
+      register: mount_output
+
+    - name: Print mount output
+      debug:
+        var: mount_output.stdout
