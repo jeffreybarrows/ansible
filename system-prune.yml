@@ -1,0 +1,12 @@
+---
+- name: Execute Docker System Prune
+  hosts: all
+  become: yes  # Use sudo to execute Docker commands
+  tasks:
+    - name: Perform Docker system prune
+      ansible.builtin.command: docker system prune -f
+      register: prune_output
+
+    - name: Display prune output
+      ansible.builtin.debug:
+        var: prune_output.stdout
