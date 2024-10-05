@@ -4,14 +4,12 @@
   become: yes
   tasks:
     - name: Get the list of Docker Swarm nodes
-      ansible.builtin.command:
-        cmd: docker node ls --format '{{.ID}}'
+      ansible.builtin.shell: docker node ls --format '{{"{{.ID}}"}}'
       register: docker_nodes
       changed_when: false  # This task is only for gathering information
 
     - name: Drain all nodes except the manager
-      ansible.builtin.command:
-        cmd: docker node update --availability drain {{ item }}
+      ansible.builtin.shell: docker node update --availability drain {{ item }}
       loop: "{{ docker_nodes.stdout_lines }}"
       when: item != (ansible_hostname | lower)  # Skip manager node
 
@@ -20,7 +18,5 @@
         seconds: 10
 
     - name: Bring all nodes back online
-      ansible.builtin.command:
-        cmd: docker node update --availability active {{ item }}
+      ansible.builtin.shell: docker node update --availability active {{ item }}
       loop: "{{ docker_nodes.stdout_lines }}"
-
