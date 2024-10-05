@@ -1,5 +1,5 @@
 ---
-- name: Force rebalance of Docker Swarm (with manager as backup)
+- name: Force rebalance of Docker Swarm (without manager running tasks)
   hosts: all
   become: yes
   tasks:
@@ -30,8 +30,3 @@
       ansible.builtin.shell: docker node update --availability active {{ item.split()[0] }}
       loop: "{{ docker_nodes.stdout_lines }}"
       when: "'worker' in item"
-
-    - name: Bring manager node back online (as backup)
-      ansible.builtin.shell: docker node update --availability active {{ item.split()[0] }}
-      loop: "{{ docker_nodes.stdout_lines }}"
-      when: "'manager' in item"
