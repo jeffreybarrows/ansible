@@ -4,30 +4,30 @@
   become: yes
   tasks:
     - name: Get the list of Docker Swarm nodes
-      ansible.builtin.command: docker node ls --format '{{json .}}'
+      ansible.builtin.command: docker node ls --format '{{.ID}} {{.Hostname}} {{.Role}} {{.Availability}}'
       register: docker_nodes
       changed_when: false
 
-    - name: Parse node details and drain worker nodes
-      ansible.builtin.shell: docker node update --availability drain {{ item.ID }}
-      loop: "{{ docker_nodes.stdout_lines | map('from_json') | list }}"
-      when: item.Role == 'worker'
+    - name: Drain all worker nodes
+      ansible.builtin.shell: docker node update --availability drain {{ item.split()[0] }}
+      loop: "{{ docker_nodes.stdout_lines }}"
+      when: "'worker' in item"
 
-    - name: Set manager node to drain to prevent scheduling of services unless needed
-      ansible.builtin.shell: docker node update --availability drain {{ item.ID }}
-      loop: "{{ docker_nodes.stdout_lines | map('from_json') | list }}"
-      when: item.Role == 'manager'
+    - name: Drain manager node to prevent scheduling of services unless needed
+      ansible.builtin.shell: docker node update --availability drain {{ item.split()[0] }}
+      loop: "{{ docker_nodes.stdout_lines }}"
+      when: "'manager' in item"
 
     - name: Pause to allow services to migrate
       ansible.builtin.pause:
         seconds: 15
 
     - name: Bring worker nodes back online to rebalance services
-      ansible.builtin.shell: docker node update --availability active {{ item.ID }}
-      loop: "{{ docker_nodes.stdout_lines | map('from_json') | list }}"
-      when: item.Role == 'worker'
+      ansible.builtin.shell: docker node update --availability active {{ item.split()[0] }}
+      loop: "{{ docker_nodes.stdout_lines }}"
+      when: "'worker' in item"
 
     - name: Bring manager node back online for backup
-      ansible.builtin.shell: docker node update --availability active {{ item.ID }}
-      loop: "{{ docker_nodes.stdout_lines | map('from_json') | list }}"
-      when: item.Role == 'manager'
+      ansible.builtin.shell: docker node update --availability active {{ item.split()[0] }}
+      loop: "{{ docker_nodes.stdout_lines }}"
+      when: "'manager' in item"
