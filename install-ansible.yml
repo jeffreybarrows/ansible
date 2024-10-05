@@ -15,7 +15,14 @@
     - name: Verify Ansible installation
       ansible.builtin.command: ansible --version
       register: ansible_version
+      ignore_errors: yes  # Ignore errors in case Ansible isn't installed
 
-    - name: Print Ansible version
+    - name: Check if Ansible installation was successful
       ansible.builtin.debug:
         msg: "Ansible installed successfully: {{ ansible_version.stdout }}"
+      when: ansible_version is defined and ansible_version.stdout is defined
+
+    - name: Print error message if Ansible installation failed
+      ansible.builtin.debug:
+        msg: "Ansible installation failed or is not properly installed."
+      when: ansible_version is not defined or ansible_version.stdout is not defined
