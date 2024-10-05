@@ -1,22 +1,37 @@
 ---
-- name: Force rebalance of Docker Swarm
+- name: Force rebalance of Docker Swarm (with manager as backup)
   hosts: all
   become: yes
   tasks:
-    - name: Get the list of Docker Swarm nodes
-      ansible.builtin.shell: docker node ls --format '{{"{{.ID}}"}}'
+    - name: Get the list of Docker Swarm nodes and their roles
+      ansible.builtin.shell: docker node ls --format '{{"{{.ID}} {{.Hostname}} {{.Role}}"}}'
       register: docker_nodes
-      changed_when: false  # This task is only for gathering information
+      changed_when: false
 
-    - name: Drain all nodes except the manager
-      ansible.builtin.shell: docker node update --availability drain {{ item }}
+    - name: Debug node information (optional)
+      debug:
+        var: docker_nodes.stdout_lines
+
+    - name: Drain all worker nodes
+      ansible.builtin.shell: docker node update --availability drain {{ item.split()[0] }}
       loop: "{{ docker_nodes.stdout_lines }}"
-      when: item != (ansible_hostname | lower)  # Skip manager node
+      when: "'worker' in item"
+
+    - name: Set manager node to drain (to avoid scheduling tasks on it)
+      ansible.builtin.shell: docker node update --availability drain {{ item.split()[0] }}
+      loop: "{{ docker_nodes.stdout_lines }}"
+      when: "'manager' in item"
 
     - name: Sleep for a few seconds to allow tasks to migrate
       ansible.builtin.pause:
         seconds: 10
 
-    - name: Bring all nodes back online
-      ansible.builtin.shell: docker node update --availability active {{ item }}
+    - name: Bring all worker nodes back online
+      ansible.builtin.shell: docker node update --availability active {{ item.split()[0] }}
       loop: "{{ docker_nodes.stdout_lines }}"
+      when: "'worker' in item"
+
+    - name: Bring manager node back online (as backup)
+      ansible.builtin.shell: docker node update --availability active {{ item.split()[0] }}
+      loop: "{{ docker_nodes.stdout_lines }}"
+      when: "'manager' in item"
