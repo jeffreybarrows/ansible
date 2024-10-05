@@ -3,8 +3,8 @@
   hosts: all
   become: yes
   tasks:
-    - name: Get the list of Docker Swarm nodes and their details
-      ansible.builtin.shell: docker node ls --format '{{{{json .}}}}'
+    - name: Get the list of Docker Swarm nodes
+      ansible.builtin.command: docker node ls --format '{{json .}}'
       register: docker_nodes
       changed_when: false
 
