@@ -5,11 +5,11 @@
   tasks:
     - name: Perform Docker system prune
       expect:
-        ansible.builtin.command: docker system prune -f
+        command: docker system prune
         responses:
           'Are you sure you want to continue? [y/N]': 'y\n'
       register: prune_output
 
     - name: Display prune output
-      ansible.builtin.debug:
-        var: prune_output.stdout
+      debug:
+        var: docker_prune_output.stdout_lines
