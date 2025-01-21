@@ -4,9 +4,10 @@
   become: yes  # Use sudo to execute Docker commands
   tasks:
     - name: Perform Docker system prune
-      ansible.builtin.command: docker system prune -f
-      responses:
-        'Are you sure you want to continue? [y/N]': 'y\n'
+      expect:
+        ansible.builtin.command: docker system prune -f
+        responses:
+          'Are you sure you want to continue? [y/N]': 'y\n'
       register: prune_output
 
     - name: Display prune output
