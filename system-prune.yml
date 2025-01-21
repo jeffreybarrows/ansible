@@ -1,6 +1,6 @@
 ---
 - name: Docker System Prune on Swarm Host
-  hosts: docker_swarm_host  # Replace this with your inventory group or host
+  hosts: all  # Replace this with your inventory group or host
   become: yes               # Ensures the playbook is run with elevated privileges
   tasks:
     - name: Run Docker System Prune
