@@ -1,15 +1,14 @@
 ---
-- name: Execute Docker System Prune
-  hosts: all
-  become: yes  # Use sudo to execute Docker commands
+- name: Docker System Prune on Swarm Host
+  hosts: docker_swarm_host  # Replace this with your inventory group or host
+  become: yes               # Ensures the playbook is run with elevated privileges
   tasks:
-    - name: Perform Docker system prune
-      expect:
-        command: docker system prune
-        responses:
-          'Are you sure you want to continue? [y/N]': 'y\n'
-      register: prune_output
+    - name: Run Docker System Prune
+      ansible.builtin.command:
+        cmd: docker system prune -f
+      register: prune_result
 
-    - name: Display prune output
+    - name: Display Prune Results
       debug:
-        var: docker_prune_output.stdout_lines
+        var: prune_result.stdout
+
