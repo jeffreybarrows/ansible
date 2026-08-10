@@ -1,5 +1,5 @@
 ---
-- name: Update apt cache on Ubuntu systems
+- name: Update and Upgrade Ubuntu Packages
   hosts: all
   become: true
   become_user: root
@@ -9,3 +9,7 @@
     - name: Update apt cache
       ansible.builtin.apt:
         update_cache: true
+
+    - name: Upgrade installed packages
+      ansible.builtin.apt:
+        upgrade: yes
