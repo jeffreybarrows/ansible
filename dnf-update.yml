@@ -1,0 +1,63 @@
+---
+- name: Update and Upgrade RHEL Packages
+  hosts: all
+  become: true
+  become_user: root
+  become_method: sudo
+
+  tasks:
+    - name: Verify target is RHEL 8, 9, or 10
+      ansible.builtin.assert:
+        that:
+          - ansible_distribution == "RedHat"
+          - ansible_distribution_major_version | int in [8, 9, 10]
+        fail_msg: >-
+          {{ inventory_hostname }} is {{ ansible_distribution }}
+          {{ ansible_distribution_version }}, not a supported RHEL 8/9/10 host.
+
+    - name: Ensure DNF needs-restarting plugin is installed
+      ansible.builtin.dnf:
+        name: dnf-plugins-core
+        state: present
+        use_backend: auto
+
+    - name: Refresh DNF repository metadata
+      ansible.builtin.dnf:
+        update_cache: true
+        name: "*"
+        state: present
+        use_backend: auto
+
+    - name: Upgrade all installed packages
+      ansible.builtin.dnf:
+        name: "*"
+        state: latest
+        update_only: true
+        use_backend: auto
+
+    - name: Remove packages that are no longer required
+      ansible.builtin.dnf:
+        autoremove: true
+        use_backend: auto
+
+    - name: Clean DNF cache
+      ansible.builtin.command:
+        cmd: dnf clean all
+      changed_when: false
+
+    - name: Check if reboot is required
+      ansible.builtin.command:
+        cmd: dnf needs-restarting -r
+      register: reboot_check
+      changed_when: false
+      failed_when: reboot_check.rc not in [0, 1]
+
+    - name: Report reboot required
+      ansible.builtin.debug:
+        msg: "REBOOT REQUIRED on {{ inventory_hostname }}"
+      when: reboot_check.rc == 1
+
+    - name: Report no reboot required
+      ansible.builtin.debug:
+        msg: "No reboot required on {{ inventory_hostname }}"
+      when: reboot_check.rc == 0
