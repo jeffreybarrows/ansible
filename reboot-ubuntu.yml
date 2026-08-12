@@ -1,1 +1,28 @@
-#Ansible playbook to reboot Ubuntu machines
+---
+- name: Reboot Ubuntu systems
+  hosts: all
+  become: true
+  become_user: root
+  become_method: sudo
+
+  tasks:
+    - name: Verify target is Ubuntu
+      ansible.builtin.assert:
+        that:
+          - ansible_facts["distribution"] == "Ubuntu"
+        fail_msg: >-
+          {{ inventory_hostname }} is {{ ansible_facts["distribution"] }}
+          {{ ansible_facts["distribution_version"] }}, not an Ubuntu system.
+
+    - name: Reboot all Ubuntu systems
+      ansible.builtin.reboot:
+        msg: "Reboot initiated by Semaphore/Ansible"
+        pre_reboot_delay: 5
+        post_reboot_delay: 10
+        reboot_timeout: 900
+        connect_timeout: 10
+        test_command: whoami
+
+    - name: Confirm system returned successfully
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }} rebooted successfully and is reachable."
