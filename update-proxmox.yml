@@ -3,6 +3,21 @@
   hosts: all
 
   tasks:
+    - name: Verify connection is running as root
+      ansible.builtin.command:
+        cmd: id -u
+      register: remote_uid
+      changed_when: false
+      check_mode: false
+
+    - name: Fail if connection is not root
+      ansible.builtin.assert:
+        that:
+          - remote_uid.stdout | trim == "0"
+        fail_msg: >-
+          Semaphore connected to {{ inventory_hostname }} as a non-root user.
+          This Proxmox playbook must connect directly as root.
+
     - name: Verify target is a Proxmox VE host
       ansible.builtin.command:
         cmd: pveversion
@@ -28,6 +43,7 @@
     - name: Remove obsolete downloaded package files
       ansible.builtin.apt:
         autoclean: true
+      when: not ansible_check_mode
 
     - name: Clean APT package cache
       ansible.builtin.apt:
